@@ -2,19 +2,43 @@ from models import CONN, CURSOR
 
 class Category:
     def __init__(self, id, name, description):
-        self.id = id
+        self._id = id
         self.name = name
         self.description = description
 
     def __str__(self):
         return f'Category(id={self.id}, name={self.name}, description={self.description})'
 
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not value:
+            raise ValueError("Name cannot be empty")
+        self._name = value
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        if not value:
+            raise ValueError("Description cannot be empty")
+        self._description = value
+
     @classmethod
     def create_table(cls):
         CURSOR.execute('''CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY,
-            name TEXT,
-            description TEXT
+            name TEXT NOT NULL,
+            description TEXT NOT NULL
         )''')
         CONN.commit()
 
@@ -56,15 +80,9 @@ class Category:
         CONN.commit()
 
     def products(self):
-        """Return list of products associated with current category"""
-        from models.Product import Product
-        sql = """
-            SELECT * FROM products
-            WHERE category_id = ?
-        """
-        CURSOR.execute(sql, (self.id,),)
-
+        from models.product import Product
+        CURSOR.execute('SELECT * FROM products WHERE category_id = ?', (self.id,))
         rows = CURSOR.fetchall()
-        return [
-            Product(*row) for row in rows
-        ]
+        return [Product(*row) for row in rows]
+
+
